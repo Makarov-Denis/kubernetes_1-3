@@ -66,6 +66,9 @@
 ![status](https://github.com/user-attachments/assets/823a115c-1c62-4196-b5ca-5344f5321885)
 
 ### 3. Создать и запустить Service. Убедиться, что Init запустился.
+
+![service_nginx-init](https://github.com/user-attachments/assets/ebaceeaa-064b-4541-b435-b4915e0f5755)
+
 ![status](https://github.com/user-attachments/assets/0ad96dbe-6d57-4b70-ab0c-e4acf6df475a)
 
 ### 4. Продемонстрировать состояние пода до и после запуска сервиса.
