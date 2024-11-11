@@ -20,7 +20,6 @@
 
 ![izm deployment](https://github.com/user-attachments/assets/74567f9d-a991-4b6b-a53f-25c7ac0ac0ed)
 
-
 Проверим результат:
 
 ![proverka](https://github.com/user-attachments/assets/e8e1e252-def4-4241-bec7-d5482c85785c)
@@ -45,7 +44,6 @@
 ### 5. Создать отдельный Pod с приложением multitool и убедиться с помощью `curl`, что из пода есть доступ до приложений из п.1.
 Созданный Pod с приложением multitool/, а также выполнение представлено на скриншотах ниже:
 
-
 ![test_pod](https://github.com/user-attachments/assets/24dd3c16-5ac0-4860-a770-0ebf302f5d6e)
 
 ![zapusk multitool](https://github.com/user-attachments/assets/0af1b5b8-f4f5-47b9-836f-e72969278021)
@@ -58,117 +56,20 @@
 ## Задание 2. Создать Deployment и обеспечить старт основного контейнера при выполнении условий
 
 ### 1. Создать Deployment приложения nginx и обеспечить старт контейнера только после того, как будет запущен сервис этого приложения.
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-init
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: web-init
-  template:
-    metadata:
-      labels:
-        app: web-init
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.19.2
-      initContainers:
-      - name: init-busybox
-        image: busybox
-        command: ['sh', '-c', "until nslookup svc-nginx-init.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for svc-nginx-init; sleep 2; done"]
-```
+
+Созданный deployment предмтавлен на скриншоте ниже:
+![pod nginx_init](https://github.com/user-attachments/assets/a3c2ede8-8707-463a-84c1-ac00bf5a7af7)
+
+
 ### 2. Убедиться, что nginx не стартует. В качестве Init-контейнера взять busybox.
-```bash
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl apply -f nginx_init.yaml 
-deployment.apps/nginx-init created
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl get pods -o wide
-NAME                                   READY   STATUS     RESTARTS   AGE   IP             NODE          NOMINATED NODE   READINESS GATES
-netology-deployment-5d89c69f57-jrwhc   2/2     Running    0          70m   10.1.123.145   netology-01   <none>           <none>
-netology-deployment-5d89c69f57-wqclk   2/2     Running    0          66m   10.1.123.146   netology-01   <none>           <none>
-test-multitool                         1/1     Running    0          43m   10.1.123.147   netology-01   <none>           <none>
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          5s    10.1.123.149   netology-01   <none>           <none>
-```
-Параллельно:
-```bash
-root@nikulin:~# kubectl get pods -w
-NAME                                   READY   STATUS    RESTARTS   AGE
-netology-deployment-5d89c69f57-jrwhc   2/2     Running   0          69m
-netology-deployment-5d89c69f57-wqclk   2/2     Running   0          66m
-test-multitool                         1/1     Running   0          42m
-nginx-init-5fbf9bd49c-stqwt            0/1     Pending   0          0s
-nginx-init-5fbf9bd49c-stqwt            0/1     Pending   0          0s
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          0s
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          1s
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          3s
-```
+
+![status](https://github.com/user-attachments/assets/823a115c-1c62-4196-b5ca-5344f5321885)
+
 ### 3. Создать и запустить Service. Убедиться, что Init запустился.
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: svc-nginx-init
-spec:
-  ports:
-    - name: web
-      port: 80
-  selector:
-    app: web-init    
-```
-```bash
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl apply -f svc_nginx_init.yaml 
-service/svc-nginx-init created
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl get pods -o wide
-NAME                                   READY   STATUS    RESTARTS   AGE    IP             NODE          NOMINATED NODE   READINESS GATES
-netology-deployment-5d89c69f57-jrwhc   2/2     Running   0          71m    10.1.123.145   netology-01   <none>           <none>
-netology-deployment-5d89c69f57-wqclk   2/2     Running   0          68m    10.1.123.146   netology-01   <none>           <none>
-test-multitool                         1/1     Running   0          44m    10.1.123.147   netology-01   <none>           <none>
-nginx-init-5fbf9bd49c-stqwt            1/1     Running   0          109s   10.1.123.149   netology-01   <none>           <none>
-```
-Параллельно:
-```bash
-root@nikulin:~# kubectl get pods -w
-NAME                                   READY   STATUS    RESTARTS   AGE
-netology-deployment-5d89c69f57-jrwhc   2/2     Running   0          69m
-netology-deployment-5d89c69f57-wqclk   2/2     Running   0          66m
-test-multitool                         1/1     Running   0          42m
-nginx-init-5fbf9bd49c-stqwt            0/1     Pending   0          0s
-nginx-init-5fbf9bd49c-stqwt            0/1     Pending   0          0s
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          0s
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          1s
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          3s
-nginx-init-5fbf9bd49c-stqwt            0/1     PodInitializing   0          105s
-nginx-init-5fbf9bd49c-stqwt            1/1     Running           0          106s
-```
+![status](https://github.com/user-attachments/assets/0ad96dbe-6d57-4b70-ab0c-e4acf6df475a)
+
 ### 4. Продемонстрировать состояние пода до и после запуска сервиса.
-```bash
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl apply -f nginx_init.yaml 
-deployment.apps/nginx-init created
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl get pods -o wide
-NAME                                   READY   STATUS     RESTARTS   AGE   IP             NODE          NOMINATED NODE   READINESS GATES
-netology-deployment-5d89c69f57-jrwhc   2/2     Running    0          70m   10.1.123.145   netology-01   <none>           <none>
-netology-deployment-5d89c69f57-wqclk   2/2     Running    0          66m   10.1.123.146   netology-01   <none>           <none>
-test-multitool                         1/1     Running    0          43m   10.1.123.147   netology-01   <none>           <none>
-nginx-init-5fbf9bd49c-stqwt            0/1     Init:0/1   0          5s    10.1.123.149   netology-01   <none>           <none>root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl get svc -o wide
-NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                 AGE     SELECTOR
-kubernetes           ClusterIP   10.152.183.1     <none>        443/TCP                 3h22m   <none>
-deployment-service   ClusterIP   10.152.183.77    <none>        80/TCP,443/TCP,81/TCP   58m     app=main
-```
-```bash
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl apply -f svc_nginx_init.yaml 
-service/svc-nginx-init created
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl get pods -o wide
-NAME                                   READY   STATUS    RESTARTS   AGE    IP             NODE          NOMINATED NODE   READINESS GATES
-netology-deployment-5d89c69f57-jrwhc   2/2     Running   0          71m    10.1.123.145   netology-01   <none>           <none>
-netology-deployment-5d89c69f57-wqclk   2/2     Running   0          68m    10.1.123.146   netology-01   <none>           <none>
-test-multitool                         1/1     Running   0          44m    10.1.123.147   netology-01   <none>           <none>
-nginx-init-5fbf9bd49c-stqwt            1/1     Running   0          109s   10.1.123.149   netology-01   <none>           <none>
-root@nikulin:/home/nikulinn/other/kuber_1-3/scr# kubectl get svc -o wide
-NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                 AGE     SELECTOR
-kubernetes           ClusterIP   10.152.183.1     <none>        443/TCP                 3h22m   <none>
-deployment-service   ClusterIP   10.152.183.77    <none>        80/TCP,443/TCP,81/TCP   58m     app=main
-svc-nginx-init       ClusterIP   10.152.183.172   <none>        80/TCP                  2m37s   app=web-init
-```
+
+![status](https://github.com/user-attachments/assets/29197e66-eda1-406c-94fc-f96c9cb6a1c8)
+
+![final](https://github.com/user-attachments/assets/9df74d0a-2381-45c3-a2e5-14093b566c84)
