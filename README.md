@@ -42,7 +42,7 @@
 ![proverka srv](https://github.com/user-attachments/assets/2c54de75-8e6b-4655-8e46-e16cdf10f167)
 
 ### 5. Создать отдельный Pod с приложением multitool и убедиться с помощью `curl`, что из пода есть доступ до приложений из п.1.
-Созданный Pod с приложением multitool/, а также выполнение представлено на скриншотах ниже:
+Созданный Pod с приложением multitool , а также выполнение представлено на скриншотах ниже:
 
 ![test_pod](https://github.com/user-attachments/assets/24dd3c16-5ac0-4860-a770-0ebf302f5d6e)
 
